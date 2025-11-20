@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/ilyakaznacheev/cleanenv"
@@ -35,6 +36,21 @@ type DatabaseConfig struct {
 type LogConfig struct {
 	Level  string `yaml:"level"`
 	Format string `yaml:"format"`
+}
+
+func (d *DatabaseConfig) GetDSN() (string, error) {
+	passwordFile := "/run/secrets/db-password"
+	data, err := os.ReadFile(passwordFile)
+	if err != nil {
+		return "", fmt.Errorf("failed to read password from secrets: %w", err)
+	}
+
+	password := strings.TrimSpace(string(data))
+
+	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		d.Host, d.Port, d.User, password, d.Database)
+
+	return dsn, nil
 }
 
 func Load(configPath string) (*Config, error) {
