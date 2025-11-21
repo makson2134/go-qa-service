@@ -22,7 +22,7 @@ func (db *DB) GetAnswerByID(id int) (*models.Answer, error) {
 	if err := db.conn.First(&answer, id).Error; err != nil {
 		return nil, err
 	}
-	
+
 	return &answer, nil
 }
 

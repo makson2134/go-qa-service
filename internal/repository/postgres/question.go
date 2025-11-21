@@ -28,7 +28,7 @@ func (db *DB) List() ([]models.Question, error) {
 	if err := db.conn.Find(&questions).Error; err != nil {
 		return nil, err
 	}
-	
+
 	return questions, nil
 }
 

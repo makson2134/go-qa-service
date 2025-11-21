@@ -40,6 +40,6 @@ func (db *DB) Close() error {
 	if err != nil {
 		return err
 	}
-	
+
 	return sqlDB.Close()
 }
