@@ -39,7 +39,7 @@ type LogConfig struct {
 }
 
 func (d *DatabaseConfig) GetDSN() (string, error) {
-	passwordFile := "/run/secrets/db-password"
+	passwordFile := "/run/secrets/db-password" // #nosec G101
 	data, err := os.ReadFile(passwordFile)
 	if err != nil {
 		return "", fmt.Errorf("failed to read password from secrets: %w", err)
