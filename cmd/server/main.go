@@ -1,16 +1,21 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
 	"path/filepath"
+	"syscall"
+	"time"
 
 	"github.com/makson2134/go-qa-service/internal/api"
 	"github.com/makson2134/go-qa-service/internal/api/handlers"
 	"github.com/makson2134/go-qa-service/internal/config"
 	"github.com/makson2134/go-qa-service/internal/repository/postgres"
 	"github.com/makson2134/go-qa-service/pkg"
+	"github.com/pressly/goose/v3"
 )
 
 func main() {
@@ -29,7 +34,7 @@ func main() {
 	dsn, err := cfg.Database.GetDSN()
 	if err != nil {
 		logger.Error("failed to get DSN", "error", err)
-		log.Fatal(err) //
+		log.Fatal(err)
 	}
 
 	db, err := postgres.New(
@@ -48,7 +53,24 @@ func main() {
 		}
 	}()
 
-	logger.Info("connected to database")
+	logger.Info("Connected to database")
+
+	sqlDB, err := db.GetDB()
+	if err != nil {
+		logger.Error("Failed to get database instance", "error", err)
+		log.Fatal(err)
+	}
+
+	if err := goose.SetDialect("postgres"); err != nil {
+		logger.Error("Failed to set goose dialect", "error", err)
+		log.Fatal(err)
+	}
+
+	if err := goose.Up(sqlDB, "migrations"); err != nil {
+		logger.Error("Failed to run migrations", "error", err)
+		log.Fatal(err)
+	}
+	logger.Info("Migrations applied successfully")
 
 	h := handlers.New(db, db, logger)
 
@@ -62,11 +84,30 @@ func main() {
 		IdleTimeout:  cfg.Server.IdleTimeout,
 	}
 
-	logger.Info("starting server", "port", cfg.Server.Port, "env", cfg.Env)
-	if err := server.ListenAndServe(); err != nil {
-		logger.Error("server failed", "error", err)
-		log.Fatal(err)
+	go func() {
+		logger.Info("starting server", "port", cfg.Server.Port, "env", cfg.Env)
+
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			logger.Error("server failed", "error", err)
+			log.Fatal(err)
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+
+	sig := <-quit
+	logger.Info("received shutdown signal", "signal", sig)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	logger.Info("shutting down server gracefully")
+	if err := server.Shutdown(ctx); err != nil {
+		logger.Error("server forced to shutdown", "error", err)
 	}
+
+	logger.Info("server stopped")
 }
 func findConfigFile(dir string) (string, error) {
 	entries, err := os.ReadDir(dir)

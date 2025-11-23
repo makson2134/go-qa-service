@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"database/sql"  //For goose migrations
 	"fmt"
 	"time"
 
@@ -42,4 +43,8 @@ func (db *DB) Close() error {
 	}
 
 	return sqlDB.Close()
+}
+
+func (db *DB) GetDB() (*sql.DB, error) {
+	return db.conn.DB()
 }
