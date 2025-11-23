@@ -1,4 +1,4 @@
-.PHONY: help up down build test migrate-up migrate-down logs clean
+.PHONY: up down build test test-integration migrate-up migrate-down logs clean
 
 up:
 	docker compose up --build -d
@@ -11,6 +11,9 @@ build:
 
 test:
 	go test -v ./...
+
+test-integration:
+	go test -v ./tests/...
 
 migrate-up:
 	docker compose exec backend goose -dir migrations postgres "host=db port=5432 user=${POSTGRES_USER} password=$$(cat secrets/postgres-password.txt) dbname=${POSTGRES_DB} sslmode=disable" up
