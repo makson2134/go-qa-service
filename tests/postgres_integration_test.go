@@ -49,7 +49,9 @@ func setupTestDB(t *testing.T) (*postgres.DB, func()) {
 	}
 
 	cleanup := func() {
-		db.Close()
+		if err := db.Close(); err != nil {
+			t.Logf("failed to close database connection: %v", err)
+		}
 		if err := postgresContainer.Terminate(ctx); err != nil {
 			t.Logf("failed to terminate container: %v", err)
 		}

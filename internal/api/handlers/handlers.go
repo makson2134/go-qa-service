@@ -25,5 +25,7 @@ func New(questions repository.QuestionRepository, answers repository.AnswerRepos
 func (h *Handlers) HealthCheck(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+	if err := json.NewEncoder(w).Encode(map[string]string{"status": "ok"}); err != nil {
+		h.log.Error("Failed to encode health check response", "error", err)
+	}
 }
