@@ -11,13 +11,18 @@ import (
 	"github.com/makson2134/go-qa-service/pkg"
 )
 
-type mockQuestionRepo struct{}
+type mockQuestionRepo struct {
+	getByIDFunc func(id int) (*models.Question, error)
+}
 
 func (m *mockQuestionRepo) Create(text string) (*models.Question, error) {
 	return nil, nil
 }
 
 func (m *mockQuestionRepo) GetByID(id int) (*models.Question, error) {
+	if m.getByIDFunc != nil {
+		return m.getByIDFunc(id)
+	}
 	return nil, nil
 }
 

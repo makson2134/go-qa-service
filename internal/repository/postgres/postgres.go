@@ -1,7 +1,7 @@
 package postgres
 
 import (
-	"database/sql"  //For goose migrations
+	"database/sql" //For goose migrations
 	"fmt"
 	"time"
 
