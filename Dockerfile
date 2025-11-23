@@ -18,5 +18,6 @@ WORKDIR /root/
 
 COPY --from=builder /app/main .
 COPY --from=builder /app/config ./config
+COPY --from=builder /app/migrations ./migrations
 
 CMD ["./main"]

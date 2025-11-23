@@ -10,6 +10,8 @@ import (
 func SetupRoutes(h *handlers.Handlers) http.Handler {
 	mux := http.NewServeMux()
 
+	mux.HandleFunc("/health", h.HealthCheck)
+
 	mux.HandleFunc("/questions/", func(w http.ResponseWriter, r *http.Request) {
 		path := strings.TrimPrefix(r.URL.Path, "/questions/")
 
